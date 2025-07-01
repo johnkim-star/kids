@@ -521,7 +521,12 @@
             </div>
 
             <div class="history">
-                <div class="history-title">최근 기록</div>
+                <div class="history-title">
+                    최근 기록
+                    <button class="btn btn-secondary" onclick="clearRecentHistory()" style="float: right; padding: 8px 15px; font-size: 0.9em; background: #dc3545; min-width: auto;">
+                        기록 삭제
+                    </button>
+                </div>
                 <div id="history-list"></div>
             </div>
         </div>
@@ -893,7 +898,7 @@
             if (monthData.transactions.length === 0) {
                 historyList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">아직 기록이 없습니다</div>';
             } else {
-                historyList.innerHTML = monthData.transactions.slice(0, 10).map(transaction => `
+                historyList.innerHTML = monthData.transactions.slice(0, 10).map((transaction, index) => `
                     <div class="history-item">
                         <div>
                             <div>${transaction.mission}</div>
@@ -901,8 +906,13 @@
                                 ${transaction.fullDate || transaction.date} ${transaction.time}
                             </div>
                         </div>
-                        <div class="${transaction.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
-                            ${transaction.points > 0 ? '+' : ''}${transaction.points}원
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="${transaction.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
+                                ${transaction.points > 0 ? '+' : ''}${transaction.points}원
+                            </div>
+                            <button class="btn-delete" onclick="deleteTransaction(${index})" title="이 기록 삭제">
+                                ✕
+                            </button>
                         </div>
                     </div>
                 `).join('');
@@ -1075,20 +1085,70 @@
             
             document.getElementById('selected-date').textContent = dateString;
             
-            const activitiesHTML = dayTransactions.map(transaction => `
+            const activitiesHTML = dayTransactions.map((transaction, index) => `
                 <div class="history-item">
                     <div>
                         <div>${transaction.mission}</div>
                         <div style="font-size: 0.9em; color: #666;">${transaction.time}</div>
                     </div>
-                    <div class="${transaction.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
-                        ${transaction.points > 0 ? '+' : ''}${transaction.points}원
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="${transaction.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
+                            ${transaction.points > 0 ? '+' : ''}${transaction.points}원
+                        </div>
+                        <button class="btn-delete" onclick="deleteDayTransaction('${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}', ${new Date(transaction.timestamp).getDate()}, ${index})" title="이 기록 삭제">
+                            ✕
+                        </button>
                     </div>
                 </div>
             `).join('');
             
             document.getElementById('selected-date-activities').innerHTML = activitiesHTML;
             document.getElementById('calendar-detail').style.display = 'block';
+        }
+
+        // 달력 날짜별 거래 삭제
+        function deleteDayTransaction(monthKey, day, transactionIndex) {
+            const monthData = childrenData[currentCalendarChild].monthlyData[monthKey];
+            if (!monthData) return;
+            
+            // 해당 날짜의 거래들 찾기
+            const dayTransactions = monthData.transactions.filter(transaction => {
+                return new Date(transaction.timestamp).getDate() === day;
+            });
+            
+            if (!dayTransactions[transactionIndex]) {
+                showToast('삭제할 거래를 찾을 수 없습니다');
+                return;
+            }
+            
+            const targetTransaction = dayTransactions[transactionIndex];
+            
+            if (!confirm(`정말로 이 기록을 삭제하시겠습니까?\n\n${targetTransaction.mission}: ${targetTransaction.points > 0 ? '+' : ''}${targetTransaction.points}원`)) {
+                return;
+            }
+            
+            // 전체 거래 목록에서 해당 거래의 인덱스 찾기
+            const originalIndex = monthData.transactions.findIndex(transaction => 
+                transaction.timestamp === targetTransaction.timestamp && 
+                transaction.mission === targetTransaction.mission &&
+                transaction.points === targetTransaction.points
+            );
+            
+            if (originalIndex !== -1) {
+                // 잔액에서 해당 포인트 차감
+                monthData.balance -= targetTransaction.points;
+                
+                // 거래 기록에서 제거
+                monthData.transactions.splice(originalIndex, 1);
+                
+                updateDisplay();
+                updateCalendar();
+                saveData();
+                showToast(`기록이 삭제되었습니다\n${targetTransaction.mission}: ${targetTransaction.points > 0 ? '+' : ''}${targetTransaction.points}원`);
+                
+                // 달력 상세 보기 새로고침
+                showDayDetail(day);
+            }
         }
 
         // 미션 관리 업데이트
@@ -1276,6 +1336,64 @@
             saveData();
             updateSettlement();
             showToast('정산이 취소되었습니다');
+        }
+
+        // 개별 거래 삭제
+        function deleteTransaction(transactionIndex) {
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const monthData = childrenData[currentChild].monthlyData[monthKey];
+            
+            if (!monthData || !monthData.transactions[transactionIndex]) {
+                showToast('삭제할 거래를 찾을 수 없습니다');
+                return;
+            }
+            
+            const transaction = monthData.transactions[transactionIndex];
+            
+            if (!confirm(`정말로 이 기록을 삭제하시겠습니까?\n\n${transaction.mission}: ${transaction.points > 0 ? '+' : ''}${transaction.points}원\n${transaction.fullDate || transaction.date} ${transaction.time}`)) {
+                return;
+            }
+            
+            // 잔액에서 해당 포인트 차감
+            monthData.balance -= transaction.points;
+            
+            // 거래 기록에서 제거
+            monthData.transactions.splice(transactionIndex, 1);
+            
+            updateDisplay();
+            updateCalendar();
+            saveData();
+            showToast(`기록이 삭제되었습니다\n${transaction.mission}: ${transaction.points > 0 ? '+' : ''}${transaction.points}원`);
+        }
+
+        // 최근 기록 삭제 (전체)
+        function clearRecentHistory() {
+            if (!confirm(`정말로 ${children[currentChild]}의 최근 기록을 모두 삭제하시겠습니까?\n\n주의: 이 작업은 되돌릴 수 없습니다.`)) {
+                return;
+            }
+            
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            
+            if (childrenData[currentChild].monthlyData[monthKey]) {
+                // 거래 기록만 삭제하고 잔액은 유지
+                const currentBalance = childrenData[currentChild].monthlyData[monthKey].balance;
+                childrenData[currentChild].monthlyData[monthKey].transactions = [];
+                
+                // 잔액도 함께 초기화할지 선택
+                if (confirm('잔액도 함께 초기화하시겠습니까?\n\n"확인": 잔액도 0원으로 초기화\n"취소": 잔액은 유지하고 기록만 삭제')) {
+                    childrenData[currentChild].monthlyData[monthKey].balance = 0;
+                    showToast(`${children[currentChild]}의 기록과 잔액이 모두 초기화되었습니다`);
+                } else {
+                    showToast(`${children[currentChild]}의 기록이 삭제되었습니다\n(잔액 ${currentBalance}원 유지)`);
+                }
+            } else {
+                showToast('삭제할 기록이 없습니다');
+                return;
+            }
+            
+            updateDisplay();
+            updateCalendar();
+            saveData();
         }
 
         // 토스트 메시지
