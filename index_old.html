@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가족 용돈 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .child-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .child-btn {
+            padding: 10px 20px;
+            border: 2px solid #4CAF50;
+            background: white;
+            color: #4CAF50;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .child-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .balance {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-name {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .task-points {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .task-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-fail {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .dashboard-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .dashboard-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .history {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .history-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .positive {
+            color: #4CAF50;
+        }
+
+        .negative {
+            color: #f44336;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .settlement-card {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .month-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .month-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        .current-month {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #4CAF50;
+            color: white;
+        }
+
+        .calendar-day-header {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #e0e0e0;
+        }
+
+        .calendar-day {
+            background: white;
+            min-height: 80px;
+            padding: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-day:hover {
+            background: #f5f5f5;
+        }
+
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #999;
+        }
+
+        .calendar-day.today {
+            background: #e8f5e8;
+            font-weight: bold;
+        }
+
+        .calendar-day.positive-day {
+            background: #e8f5e8;
+        }
+
+        .calendar-day.negative-day {
+            background: #ffeaea;
+        }
+
+        .calendar-day.mixed-day {
+            background: #fff3e0;
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .day-points {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .day-points.positive {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .day-points.negative {
+            background: #f44336;
+            color: white;
+        }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-color.positive-day {
+            background: #e8f5e8;
+        }
+
+        .legend-color.negative-day {
+            background: #ffeaea;
+        }
+
+        .legend-color.mixed-day {
+            background: #fff3e0;
+        }
+
+        .calendar-detail {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .calendar-detail h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .btn {
+                min-width: 70px;
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>가족 용돈 관리 시스템</h1>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('daily')">일일 관리</button>
+            <button class="nav-tab" onclick="showTab('calendar')">달력 보기</button>
+            <!--button class="nav-tab" onclick="showTab('dashboard')">월별 대시보드</button-->
+            <button class="nav-tab" onclick="showTab('missions')">미션 관리</button>
+            <button class="nav-tab" onclick="showTab('settlement')">월별 정산</button>
+        </div>
+
+        <!-- 일일 관리 탭 -->
+        <div id="daily" class="tab-content active">
+            <div class="child-selector">
+                <button class="child-btn active" onclick="selectChild(0)">첫째</button>
+                <button class="child-btn" onclick="selectChild(1)">둘째</button>
+            </div>
+
+            <div class="balance-card">
+                <div class="balance-label">이번 달 누적 용돈</div>
+                <div class="balance" id="current-balance">0원</div>
+            </div>
+
+            <div id="mission-list">
+                <!-- 미션 목록이 여기에 동적으로 생성됩니다 -->
+            </div>
+
+            <div class="history">
+                <div class="history-title">
+                    최근 기록
+                    <button class="btn btn-secondary" onclick="clearRecentHistory()" style="float: right; padding: 8px 15px; font-size: 0.9em; background: #dc3545; min-width: auto;">
+                        기록 삭제
+                    </button>
+                </div>
+                <div id="history-list"></div>
+            </div>
+        </div>
+
+        <!-- 달력 보기 탭 -->
+        <div id="calendar" class="tab-content">
+            <div class="month-nav">
+                <button class="month-btn" onclick="changeCalendarMonth(-1)">‹</button>
+                <span class="current-month" id="calendar-month">2025년 7월</span>
+                <button class="month-btn" onclick="changeCalendarMonth(1)">›</button>
+            </div>
+
+            <div class="child-selector">
+                <button class="child-btn active" onclick="selectCalendarChild(0)">첫째</button>
+                <button class="child-btn" onclick="selectCalendarChild(1)">둘째</button>
+            </div>
+
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-day-header">일</div>
+                    <div class="calendar-day-header">월</div>
+                    <div class="calendar-day-header">화</div>
+                    <div class="calendar-day-header">수</div>
+                    <div class="calendar-day-header">목</div>
+                    <div class="calendar-day-header">금</div>
+                    <div class="calendar-day-header">토</div>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- 달력이 여기에 동적으로 생성됩니다 -->
+                </div>
+            </div>
+
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-color positive-day"></div>
+                    <span>포인트 획득</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color negative-day"></div>
+                    <span>포인트 차감</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color mixed-day"></div>
+                    <span>혼합</span>
+                </div>
+            </div>
+
+            <div id="calendar-detail" class="calendar-detail" style="display: none;">
+                <h3 id="selected-date"></h3>
+                <div id="selected-date-activities"></div>
+            </div>
+        </div>
+        <div id="dashboard" class="tab-content">
+            <div class="month-nav">
+                <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+                <span class="current-month" id="dashboard-month">2025년 7월</span>
+                <button class="month-btn" onclick="changeMonth(1)">›</button>
+            </div>
+
+            <div class="child-selector">
+                <button class="child-btn active" onclick="selectDashboardChild(0)">첫째</button>
+                <button class="child-btn" onclick="selectDashboardChild(1)">둘째</button>
+            </div>
+
+            <div class="dashboard-grid" id="dashboard-stats">
+                <!-- 대시보드 통계가 여기에 표시됩니다 -->
+            </div>
+        </div>
+
+        <!-- 미션 관리 탭 -->
+        <div id="missions" class="tab-content">
+            <button class="btn btn-primary" onclick="showMissionModal()" style="width: 100%; margin-bottom: 20px;">
+                새 미션 추가
+            </button>
+
+            <div id="mission-management-list">
+                <!-- 미션 관리 목록이 여기에 표시됩니다 -->
+            </div>
+        </div>
+
+        <!-- 월별 정산 탭 -->
+        <div id="settlement" class="tab-content">
+            <div class="month-nav">
+                <button class="month-btn" onclick="changeSettlementMonth(-1)">‹</button>
+                <span class="current-month" id="settlement-month">2025년 7월</span>
+                <button class="month-btn" onclick="changeSettlementMonth(1)">›</button>
+            </div>
+
+            <div id="settlement-summary">
+                <!-- 정산 요약이 여기에 표시됩니다 -->
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-warning" onclick="processMonthlySettlement()" style="flex: 1;">
+                    이번 달 정산하기
+                </button>
+                <button class="btn btn-secondary" onclick="cancelSettlement()" style="flex: 1; background: #dc3545;">
+                    정산 취소
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 미션 추가/수정 모달 -->
+    <div id="mission-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeMissionModal()">&times;</span>
+            <h2 id="modal-title">새 미션 추가</h2>
+            
+            <div class="form-group">
+                <label class="form-label">미션 이름</label>
+                <input type="text" class="form-input" id="mission-name" placeholder="예: 방 정리">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">성공 시 포인트</label>
+                <input type="number" class="form-input" id="success-points" placeholder="200">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">실패 시 포인트</label>
+                <input type="number" class="form-input" id="fail-points" placeholder="-500">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 30px;">
+                <button class="btn btn-primary" onclick="saveMission()" style="flex: 1;">저장</button>
+                <button class="btn btn-secondary" onclick="closeMissionModal()" style="flex: 1; background: #6c757d;">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 전역 변수
+        let currentChild = 0;
+        let currentDashboardChild = 0;
+        let currentCalendarChild = 0;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let dashboardMonth = currentMonth;
+        let dashboardYear = currentYear;
+        let calendarMonth = currentMonth;
+        let calendarYear = currentYear;
+        let settlementMonth = currentMonth;
+        let settlementYear = currentYear;
+        let editingMissionIndex = -1;
+
+        // 초기 데이터
+        let children = ['첫째', '둘째'];
+        let missions = [
+            { name: '거실 정리', successPoints: 200, failPoints: -500, active: true },
+            { name: '빨래 정리', successPoints: 200, failPoints: -500, active: true },
+            { name: '밥 안남기고 다먹기', successPoints: 200, failPoints: -500, active: true }
+        ];
+
+        let childrenData = {
+            0: { balance: 0, history: [], monthlyData: {} },
+            1: { balance: 0, history: [], monthlyData: {} }
+        };
+
+        // MongoDB 연결 설정
+        const MONGODB_CONFIG = {
+            connectionString: 'mongodb+srv://username:password@cluster.mongodb.net/allowance?retryWrites=true&w=majority',
+            database: 'allowance',
+            collections: {
+                transactions: 'transactions',
+                missions: 'missions',
+                children: 'children',
+                settlements: 'settlements'
+            }
+        };
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCurrentMonth();
+            loadData();
+            updateMissionList();
+            updateDisplay();
+            updateDashboard();
+            updateCalendar();
+            updateMissionManagement();
+            updateSettlement();
+        });
+
+        // 현재 월로 초기화
+        function initializeCurrentMonth() {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            dashboardMonth = currentMonth;
+            dashboardYear = currentYear;
+            calendarMonth = currentMonth;
+            calendarYear = currentYear;
+            settlementMonth = currentMonth;
+            settlementYear = currentYear;
+
+            // 월 표시 업데이트
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            document.getElementById('dashboard-month').textContent = `${currentYear}년 ${monthNames[currentMonth]}`;
+            document.getElementById('calendar-month').textContent = `${currentYear}년 ${monthNames[currentMonth]}`;
+            document.getElementById('settlement-month').textContent = `${currentYear}년 ${monthNames[currentMonth]}`;
+        }
+
+        // 데이터 로드
+        function loadData() {
+            const savedData = localStorage.getItem('familyAllowanceData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                childrenData = data.childrenData || childrenData;
+                missions = data.missions || missions;
+            }
+        }
+
+        // 데이터 저장
+        function saveData() {
+            const data = {
+                childrenData: childrenData,
+                missions: missions
+            };
+            localStorage.setItem('familyAllowanceData', JSON.stringify(data));
+        }
+
+        // MongoDB 저장 함수
+        async function saveToMongoDB(type, data) {
+            try {
+                console.log(`MongoDB ${type} 저장:`, data);
+                // 실제 구현에서는 API 호출로 MongoDB에 저장
+            } catch (error) {
+                console.error('MongoDB 저장 오류:', error);
+            }
+        }
+
+        // 탭 전환
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'calendar') {
+                updateCalendar();
+            } else if (tabName === 'missions') {
+                updateMissionManagement();
+            } else if (tabName === 'settlement') {
+                updateSettlement();
+            }
+        }
+
+        // 자녀 선택
+        function selectChild(index) {
+            currentChild = index;
+            document.querySelectorAll('#daily .child-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            updateDisplay();
+        }
+
+        function selectDashboardChild(index) {
+            currentDashboardChild = index;
+            document.querySelectorAll('#dashboard .child-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            updateCalendar();
+        }
+
+        function changeCalendarMonth(direction) {
+            calendarMonth += direction;
+            if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            } else if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            }
+            
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            document.getElementById('calendar-month').textContent = `${calendarYear}년 ${monthNames[calendarMonth]}`;
+            updateCalendar();
+        }
+
+        function selectCalendarChild(index) {
+            currentCalendarChild = index;
+            document.querySelectorAll('#calendar .child-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            updateCalendar();
+        }
+
+        // 미션 목록 업데이트
+        function updateMissionList() {
+            const missionList = document.getElementById('mission-list');
+            missionList.innerHTML = missions.filter(m => m.active).map((mission, index) => `
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-name">${mission.name}</div>
+                        <div class="task-points">성공: +${mission.successPoints}원 | 실패: ${mission.failPoints}원</div>
+                    </div>
+                    <div class="task-buttons">
+                        <button class="btn btn-success" onclick="updateBalance('${mission.name}', ${mission.successPoints})">
+                            완료
+                        </button>
+                        <button class="btn btn-fail" onclick="updateBalance('${mission.name}', ${mission.failPoints})">
+                            실패
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 잔액 업데이트
+        function updateBalance(missionName, points) {
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            
+            if (!childrenData[currentChild].monthlyData[monthKey]) {
+                childrenData[currentChild].monthlyData[monthKey] = {
+                    balance: 0,
+                    transactions: [],
+                    settled: false
+                };
+            }
+
+            childrenData[currentChild].monthlyData[monthKey].balance += points;
+
+            const transaction = {
+                mission: missionName,
+                points: points,
+                timestamp: new Date(),
+                date: new Date().toLocaleDateString('ko-KR'),
+                time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                fullDate: new Date().toLocaleDateString('ko-KR', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    weekday: 'short'
+                })
+            };
+
+            childrenData[currentChild].monthlyData[monthKey].transactions.unshift(transaction);
+            
+            // 최근 20개 거래만 유지
+            if (childrenData[currentChild].monthlyData[monthKey].transactions.length > 20) {
+                childrenData[currentChild].monthlyData[monthKey].transactions = 
+                    childrenData[currentChild].monthlyData[monthKey].transactions.slice(0, 20);
+            }
+
+            updateDisplay();
+            saveData();
+            saveToMongoDB('transaction', { child: currentChild, transaction, monthKey });
+            
+            showToast(`${children[currentChild]} - ${missionName}: ${points > 0 ? '+' : ''}${points}원`);
+        }
+
+        // 화면 업데이트
+        function updateDisplay() {
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const monthData = childrenData[currentChild].monthlyData[monthKey] || { balance: 0, transactions: [] };
+            
+            document.getElementById('current-balance').textContent = `${monthData.balance}원`;
+            
+            const historyList = document.getElementById('history-list');
+            if (monthData.transactions.length === 0) {
+                historyList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">아직 기록이 없습니다</div>';
+            } else {
+                historyList.innerHTML = monthData.transactions.slice(0, 10).map((transaction, index) => `
+                    <div class="history-item">
+                        <div>
+                            <div>${transaction.mission}</div>
+                            <div style="font-size: 0.9em; color: #666;">
+                                ${transaction.fullDate || transaction.date} ${transaction.time}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="${transaction.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
+                                ${transaction.points > 0 ? '+' : ''}${transaction.points}원
+                            </div>
+                            <button class="btn-delete" onclick="deleteTransaction(${index})" title="이 기록 삭제">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // 월 변경
+        function changeMonth(direction) {
+            dashboardMonth += direction;
+            if (dashboardMonth < 0) {
+                dashboardMonth = 11;
+                dashboardYear--;
+            } else if (dashboardMonth > 11) {
+                dashboardMonth = 0;
+                dashboardYear++;
+            }
+            
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            document.getElementById('dashboard-month').textContent = `${dashboardYear}년 ${monthNames[dashboardMonth]}`;
+            updateDashboard();
+        }
+
+        function changeSettlementMonth(direction) {
+            settlementMonth += direction;
+            if (settlementMonth < 0) {
+                settlementMonth = 11;
+                settlementYear--;
+            } else if (settlementMonth > 11) {
+                settlementMonth = 0;
+                settlementYear++;
+            }
+            
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            document.getElementById('settlement-month').textContent = `${settlementYear}년 ${monthNames[settlementMonth]}`;
+            updateSettlement();
+        }
+
+        // 대시보드 업데이트
+        function updateDashboard() {
+            const monthKey = `${dashboardYear}-${String(dashboardMonth + 1).padStart(2, '0')}`;
+            const monthData = childrenData[currentDashboardChild].monthlyData[monthKey] || { balance: 0, transactions: [] };
+            
+            const successCount = monthData.transactions.filter(t => t.points > 0).length;
+            const failCount = monthData.transactions.filter(t => t.points < 0).length;
+            const totalTransactions = monthData.transactions.length;
+            const avgDaily = totalTransactions > 0 ? Math.round(monthData.balance / new Date().getDate()) : 0;
+
+            document.getElementById('dashboard-stats').innerHTML = `
+                <div class="dashboard-card">
+                    <div class="dashboard-number">${monthData.balance}원</div>
+                    <div class="dashboard-label">이번 달 총 용돈</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-number">${successCount}</div>
+                    <div class="dashboard-label">성공한 미션</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-number">${failCount}</div>
+                    <div class="dashboard-label">실패한 미션</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-number">${avgDaily}원</div>
+                    <div class="dashboard-label">일평균 획득</div>
+                </div>
+            `;
+        }
+
+        // 달력 업데이트
+        function updateCalendar() {
+            const monthKey = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}`;
+            const monthData = childrenData[currentCalendarChild].monthlyData[monthKey] || { transactions: [] };
+            
+            // 날짜별 거래 그룹화
+            const dailyData = {};
+            monthData.transactions.forEach(transaction => {
+                const dateKey = new Date(transaction.timestamp).getDate();
+                if (!dailyData[dateKey]) {
+                    dailyData[dateKey] = [];
+                }
+                dailyData[dateKey].push(transaction);
+            });
+
+            const firstDay = new Date(calendarYear, calendarMonth, 1);
+            const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+            const firstDayOfWeek = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            
+            const today = new Date();
+            const isCurrentMonth = calendarYear === today.getFullYear() && calendarMonth === today.getMonth();
+            
+            let calendarHTML = '';
+            
+            // 이전 달의 빈 칸들
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const prevMonthDay = new Date(calendarYear, calendarMonth, -firstDayOfWeek + i + 1).getDate();
+                calendarHTML += `<div class="calendar-day other-month"><div class="day-number">${prevMonthDay}</div></div>`;
+            }
+            
+            // 현재 달의 날짜들
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayTransactions = dailyData[day] || [];
+                const totalPoints = dayTransactions.reduce((sum, t) => sum + t.points, 0);
+                const positiveCount = dayTransactions.filter(t => t.points > 0).length;
+                const negativeCount = dayTransactions.filter(t => t.points < 0).length;
+                
+                let dayClass = 'calendar-day';
+                if (isCurrentMonth && day === today.getDate()) {
+                    dayClass += ' today';
+                }
+                
+                if (dayTransactions.length > 0) {
+                    if (positiveCount > 0 && negativeCount > 0) {
+                        dayClass += ' mixed-day';
+                    } else if (totalPoints > 0) {
+                        dayClass += ' positive-day';
+                    } else if (totalPoints < 0) {
+                        dayClass += ' negative-day';
+                    }
+                }
+                
+                let pointsHTML = '';
+                if (dayTransactions.length > 0) {
+                    pointsHTML = `<div class="day-points ${totalPoints >= 0 ? 'positive' : 'negative'}">
+                        ${totalPoints > 0 ? '+' : ''}${totalPoints}원
+                    </div>`;
+                    if (dayTransactions.length > 1) {
+                        pointsHTML += `<div style="font-size: 0.7em; color: #666;">${dayTransactions.length}건</div>`;
+                    }
+                }
+                
+                calendarHTML += `
+                    <div class="${dayClass}" onclick="showDayDetail(${day})">
+                        <div class="day-number">${day}</div>
+                        ${pointsHTML}
+                    </div>
+                `;
+            }
+            
+            // 다음 달의 빈 칸들
+            const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
+            const remainingCells = totalCells - (firstDayOfWeek + daysInMonth);
+            for (let i = 1; i <= remainingCells; i++) {
+                calendarHTML += `<div class="calendar-day other-month"><div class="day-number">${i}</div></div>`;
+            }
+            
+            document.getElementById('calendar-grid').innerHTML = calendarHTML;
+        }
+
+        // 날짜 상세 보기
+        function showDayDetail(day) {
+            const monthKey = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}`;
+            const monthData = childrenData[currentCalendarChild].monthlyData[monthKey] || { transactions: [] };
+            
+            const dayTransactions = monthData.transactions.filter(transaction => {
+                return new Date(transaction.timestamp).getDate() === day;
+            });
+            
+            if (dayTransactions.length === 0) {
+                document.getElementById('calendar-detail').style.display = 'none';
+                return;
+            }
+            
+            const selectedDate = new Date(calendarYear, calendarMonth, day);
+            const dateString = selectedDate.toLocaleDateString('ko-KR', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            });
+            
+            document.getElementById('selected-date').textContent = dateString;
+            
+            const activitiesHTML = dayTransactions.map((transaction, index) => `
+                <div class="history-item">
+                    <div>
+                        <div>${transaction.mission}</div>
+                        <div style="font-size: 0.9em; color: #666;">${transaction.time}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="${transaction.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
+                            ${transaction.points > 0 ? '+' : ''}${transaction.points}원
+                        </div>
+                        <button class="btn-delete" onclick="deleteDayTransaction('${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}', ${new Date(transaction.timestamp).getDate()}, ${index})" title="이 기록 삭제">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('selected-date-activities').innerHTML = activitiesHTML;
+            document.getElementById('calendar-detail').style.display = 'block';
+        }
+
+        // 달력 날짜별 거래 삭제
+        function deleteDayTransaction(monthKey, day, transactionIndex) {
+            const monthData = childrenData[currentCalendarChild].monthlyData[monthKey];
+            if (!monthData) return;
+            
+            // 해당 날짜의 거래들 찾기
+            const dayTransactions = monthData.transactions.filter(transaction => {
+                return new Date(transaction.timestamp).getDate() === day;
+            });
+            
+            if (!dayTransactions[transactionIndex]) {
+                showToast('삭제할 거래를 찾을 수 없습니다');
+                return;
+            }
+            
+            const targetTransaction = dayTransactions[transactionIndex];
+            
+            if (!confirm(`정말로 이 기록을 삭제하시겠습니까?\n\n${targetTransaction.mission}: ${targetTransaction.points > 0 ? '+' : ''}${targetTransaction.points}원`)) {
+                return;
+            }
+            
+            // 전체 거래 목록에서 해당 거래의 인덱스 찾기
+            const originalIndex = monthData.transactions.findIndex(transaction => 
+                transaction.timestamp === targetTransaction.timestamp && 
+                transaction.mission === targetTransaction.mission &&
+                transaction.points === targetTransaction.points
+            );
+            
+            if (originalIndex !== -1) {
+                // 잔액에서 해당 포인트 차감
+                monthData.balance -= targetTransaction.points;
+                
+                // 거래 기록에서 제거
+                monthData.transactions.splice(originalIndex, 1);
+                
+                updateDisplay();
+                updateCalendar();
+                saveData();
+                showToast(`기록이 삭제되었습니다\n${targetTransaction.mission}: ${targetTransaction.points > 0 ? '+' : ''}${targetTransaction.points}원`);
+                
+                // 달력 상세 보기 새로고침
+                showDayDetail(day);
+            }
+        }
+
+        // 미션 관리 업데이트
+        function updateMissionManagement() {
+            const managementList = document.getElementById('mission-management-list');
+            managementList.innerHTML = missions.map((mission, index) => `
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-name">${mission.name} ${mission.active ? '' : '(비활성)'}</div>
+                        <div class="task-points">성공: +${mission.successPoints}원 | 실패: ${mission.failPoints}원</div>
+                    </div>
+                    <div class="task-buttons">
+                        <button class="btn btn-primary" onclick="editMission(${index})">수정</button>
+                        <button class="btn ${mission.active ? 'btn-warning' : 'btn-success'}" 
+                                onclick="toggleMission(${index})">
+                            ${mission.active ? '비활성' : '활성'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 미션 모달 관련
+        function showMissionModal(index = -1) {
+            editingMissionIndex = index;
+            const modal = document.getElementById('mission-modal');
+            const title = document.getElementById('modal-title');
+            
+            if (index >= 0) {
+                title.textContent = '미션 수정';
+                document.getElementById('mission-name').value = missions[index].name;
+                document.getElementById('success-points').value = missions[index].successPoints;
+                document.getElementById('fail-points').value = missions[index].failPoints;
+            } else {
+                title.textContent = '새 미션 추가';
+                document.getElementById('mission-name').value = '';
+                document.getElementById('success-points').value = '';
+                document.getElementById('fail-points').value = '';
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closeMissionModal() {
+            document.getElementById('mission-modal').style.display = 'none';
+            editingMissionIndex = -1;
+        }
+
+        function saveMission() {
+            const name = document.getElementById('mission-name').value.trim();
+            const successPoints = parseInt(document.getElementById('success-points').value) || 0;
+            const failPoints = parseInt(document.getElementById('fail-points').value) || 0;
+
+            if (!name) {
+                showToast('미션 이름을 입력해주세요');
+                return;
+            }
+
+            const mission = { name, successPoints, failPoints, active: true };
+
+            if (editingMissionIndex >= 0) {
+                missions[editingMissionIndex] = { ...missions[editingMissionIndex], ...mission };
+                showToast('미션이 수정되었습니다');
+            } else {
+                missions.push(mission);
+                showToast('새 미션이 추가되었습니다');
+            }
+
+            updateMissionList();
+            updateMissionManagement();
+            saveData();
+            saveToMongoDB('mission', mission);
+            closeMissionModal();
+        }
+
+        function editMission(index) {
+            showMissionModal(index);
+        }
+
+        function toggleMission(index) {
+            missions[index].active = !missions[index].active;
+            updateMissionList();
+            updateMissionManagement();
+            saveData();
+            showToast(`${missions[index].name}이(가) ${missions[index].active ? '활성화' : '비활성화'}되었습니다`);
+        }
+
+        // 월별 정산
+        function updateSettlement() {
+            const monthKey = `${settlementYear}-${String(settlementMonth + 1).padStart(2, '0')}`;
+            const summaryDiv = document.getElementById('settlement-summary');
+            
+            let summaryHTML = '';
+            
+            children.forEach((childName, index) => {
+                const monthData = childrenData[index].monthlyData[monthKey] || { balance: 0, transactions: [], settled: false };
+                
+                summaryHTML += `
+                    <div class="settlement-card" style="background: ${monthData.settled ? 'linear-gradient(135deg, #4CAF50, #45a049)' : 'linear-gradient(135deg, #FF6B6B, #FF8E8E)'};">
+                        <h3>${childName}</h3>
+                        <div style="font-size: 2em; font-weight: bold; margin: 10px 0;">
+                            ${monthData.balance}원
+                        </div>
+                        <div>총 ${monthData.transactions.length}건의 활동</div>
+                        <div>${monthData.settled ? '✅ 정산 완료' : '⏳ 정산 대기'}</div>
+                    </div>
+                `;
+            });
+            
+            summaryDiv.innerHTML = summaryHTML;
+        }
+
+        function processMonthlySettlement() {
+            const monthKey = `${settlementYear}-${String(settlementMonth + 1).padStart(2, '0')}`;
+            let totalSettlement = 0;
+            let settlementDetails = [];
+            
+            children.forEach((childName, index) => {
+                const monthData = childrenData[index].monthlyData[monthKey];
+                if (monthData && !monthData.settled && monthData.balance !== 0) {
+                    monthData.settled = true;
+                    monthData.settledDate = new Date();
+                    totalSettlement += monthData.balance;
+                    settlementDetails.push({
+                        child: childName,
+                        amount: monthData.balance,
+                        transactions: monthData.transactions.length
+                    });
+                }
+            });
+            
+            if (settlementDetails.length === 0) {
+                showToast('정산할 내용이 없습니다');
+                return;
+            }
+            
+            // 정산 기록 저장
+            const settlement = {
+                month: monthKey,
+                date: new Date(),
+                details: settlementDetails,
+                totalAmount: totalSettlement
+            };
+            
+            saveData();
+            saveToMongoDB('settlement', settlement);
+            updateSettlement();
+            
+            const detailText = settlementDetails.map(d => 
+                `${d.child}: ${d.amount}원 (${d.transactions}건)`
+            ).join('\n');
+            
+            showToast(`정산 완료!\n총 ${totalSettlement}원\n\n${detailText}`);
+        }
+
+        // 정산 취소
+        function cancelSettlement() {
+            const monthKey = `${settlementYear}-${String(settlementMonth + 1).padStart(2, '0')}`;
+            let hasSettledData = false;
+            
+            children.forEach((childName, index) => {
+                const monthData = childrenData[index].monthlyData[monthKey];
+                if (monthData && monthData.settled) {
+                    hasSettledData = true;
+                }
+            });
+            
+            if (!hasSettledData) {
+                showToast('취소할 정산 내역이 없습니다');
+                return;
+            }
+            
+            if (!confirm('정말로 이번 달 정산을 취소하시겠습니까?\n정산 상태가 초기화됩니다.')) {
+                return;
+            }
+            
+            children.forEach((childName, index) => {
+                const monthData = childrenData[index].monthlyData[monthKey];
+                if (monthData && monthData.settled) {
+                    monthData.settled = false;
+                    delete monthData.settledDate;
+                }
+            });
+            
+            saveData();
+            updateSettlement();
+            showToast('정산이 취소되었습니다');
+        }
+
+        // 개별 거래 삭제
+        function deleteTransaction(transactionIndex) {
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const monthData = childrenData[currentChild].monthlyData[monthKey];
+            
+            if (!monthData || !monthData.transactions[transactionIndex]) {
+                showToast('삭제할 거래를 찾을 수 없습니다');
+                return;
+            }
+            
+            const transaction = monthData.transactions[transactionIndex];
+            
+            if (!confirm(`정말로 이 기록을 삭제하시겠습니까?\n\n${transaction.mission}: ${transaction.points > 0 ? '+' : ''}${transaction.points}원\n${transaction.fullDate || transaction.date} ${transaction.time}`)) {
+                return;
+            }
+            
+            // 잔액에서 해당 포인트 차감
+            monthData.balance -= transaction.points;
+            
+            // 거래 기록에서 제거
+            monthData.transactions.splice(transactionIndex, 1);
+            
+            updateDisplay();
+            updateCalendar();
+            saveData();
+            showToast(`기록이 삭제되었습니다\n${transaction.mission}: ${transaction.points > 0 ? '+' : ''}${transaction.points}원`);
+        }
+
+        // 최근 기록 삭제 (전체)
+        function clearRecentHistory() {
+            if (!confirm(`정말로 ${children[currentChild]}의 최근 기록을 모두 삭제하시겠습니까?\n\n주의: 이 작업은 되돌릴 수 없습니다.`)) {
+                return;
+            }
+            
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            
+            if (childrenData[currentChild].monthlyData[monthKey]) {
+                // 거래 기록만 삭제하고 잔액은 유지
+                const currentBalance = childrenData[currentChild].monthlyData[monthKey].balance;
+                childrenData[currentChild].monthlyData[monthKey].transactions = [];
+                
+                // 잔액도 함께 초기화할지 선택
+                if (confirm('잔액도 함께 초기화하시겠습니까?\n\n"확인": 잔액도 0원으로 초기화\n"취소": 잔액은 유지하고 기록만 삭제')) {
+                    childrenData[currentChild].monthlyData[monthKey].balance = 0;
+                    showToast(`${children[currentChild]}의 기록과 잔액이 모두 초기화되었습니다`);
+                } else {
+                    showToast(`${children[currentChild]}의 기록이 삭제되었습니다\n(잔액 ${currentBalance}원 유지)`);
+                }
+            } else {
+                showToast('삭제할 기록이 없습니다');
+                return;
+            }
+            
+            updateDisplay();
+            updateCalendar();
+            saveData();
+        }
+
+        // 토스트 메시지
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = message.replace(/\n/g, '<br>');
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('mission-modal');
+            if (event.target === modal) {
+                closeMissionModal();
+            }
+        }
+    </script>
+</body>
+</html>
