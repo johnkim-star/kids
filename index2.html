@@ -218,6 +218,7 @@
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px solid #e0e0e0;
+            gap: 10px;
         }
 
         .positive {
@@ -713,7 +714,7 @@
             const statusEl = document.getElementById('connection-status');
             if (statusEl) {
                 if (connected) {
-                    statusEl.textContent = '🔥연결됨';
+                    statusEl.textContent = '🔥 연결됨';
                     statusEl.className = 'connection-status connected';
                 } else {
                     statusEl.textContent = '❌ 연결 안됨';
@@ -863,7 +864,7 @@
             historyList.innerHTML = '';
             
             const recentHistory = childrenData[currentChild].history.slice(0, 10);
-            recentHistory.forEach(activity => {
+            recentHistory.forEach((activity, index) => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 
@@ -871,16 +872,59 @@
                 const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
                 
                 item.innerHTML = `
-                    <div>
+                    <div style="flex: 1;">
                         <div>${activity.mission} (${activity.success ? '성공' : '실패'})</div>
                         <div style="font-size: 0.8em; color: #666;">${dateStr}</div>
                     </div>
-                    <div class="${activity.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
+                    <div class="${activity.points > 0 ? 'positive' : 'negative'}" style="font-weight: bold; margin-right: 10px;">
                         ${activity.points > 0 ? '+' : ''}${activity.points}원
                     </div>
+                    <button class="btn-delete" onclick="deleteHistoryItem(${index})" title="이 기록 삭제">×</button>
                 `;
                 historyList.appendChild(item);
             });
+        }
+
+        // 개별 기록 삭제
+        function deleteHistoryItem(index) {
+            if (confirm('이 기록을 삭제하시겠습니까?')) {
+                const deletedActivity = childrenData[currentChild].history[index];
+                
+                // 포인트 복구 (삭제된 기록의 포인트를 현재 잔액에서 차감)
+                childrenData[currentChild].balance -= deletedActivity.points;
+                
+                // 월별 데이터에서도 포인트 복구
+                const activityDate = new Date(deletedActivity.date);
+                const monthKey = `${activityDate.getFullYear()}-${String(activityDate.getMonth() + 1).padStart(2, '0')}`;
+                if (childrenData[currentChild].monthlyData[monthKey]) {
+                    childrenData[currentChild].monthlyData[monthKey].balance -= deletedActivity.points;
+                    
+                    // 월별 활동 기록에서도 삭제
+                    const monthlyActivities = childrenData[currentChild].monthlyData[monthKey].activities;
+                    const activityIndex = monthlyActivities.findIndex(act => 
+                        act.date === deletedActivity.date && 
+                        act.mission === deletedActivity.mission &&
+                        act.points === deletedActivity.points
+                    );
+                    if (activityIndex !== -1) {
+                        monthlyActivities.splice(activityIndex, 1);
+                    }
+                }
+                
+                // 기록에서 삭제
+                childrenData[currentChild].history.splice(index, 1);
+                
+                // 데이터 저장
+                if (isFirebaseConnected) {
+                    saveDataToFirebase();
+                } else {
+                    saveDataToLocal();
+                }
+                
+                updateDisplay();
+                updateCalendar();
+                showToast(`기록이 삭제되었습니다.\n포인트가 ${deletedActivity.points > 0 ? '+' : ''}${-deletedActivity.points}원 조정되었습니다.`);
+            }
         }
 
         // 미션 목록 업데이트
@@ -1352,7 +1396,7 @@
                 await getDocs(collection(db, 'test'));
                 updateConnectionStatus(true);
                 console.log('Firebase 연결 성공!');
-                showToast('🔥 Firebase 연결 성공!\n실시간 동기화 활성화');
+                //showToast('🔥 Firebase 연결 성공!\n실시간 동기화 활성화');
                 
                 // Firebase 앱 초기화
                 if (typeof window.initializeFirebaseApp === 'function') {
@@ -1361,7 +1405,7 @@
             } catch (error) {
                 console.error('Firebase 연결 실패:', error);
                 updateConnectionStatus(false);
-                showToast('❌ Firebase 연결 실패\n로컬 모드로 실행합니다');
+                //showToast('❌ Firebase 연결 실패\n로컬 모드로 실행합니다');
                 
                 // 로컬 모드 초기화
                 if (typeof window.initializeLocalMode === 'function') {
